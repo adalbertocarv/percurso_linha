@@ -11,7 +11,7 @@ class MapConfig {
     urlTemplate: tileLayerUrl,
     subdomains: ['a', 'b', 'c'],
     additionalOptions: {
-      'style': userAgentPackageName, // Use 'rastertiles/dark_all' for dark mode
+      'style': userAgentPackageName, // Use 'rastertiles/dark_all' para dark mode
     },
     tileProvider: CancellableNetworkTileProvider(),
   );
