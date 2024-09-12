@@ -4,13 +4,15 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 class MapConfig {
   static late MapOptions options;
 
-  static const String tileLayerUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  static const String userAgentPackageName = 'dev.fleaflet.flutter_map.example';
+  static const String tileLayerUrl = 'https://{s}.basemaps.cartocdn.com/{style}/{z}/{x}/{y}{r}.png';
+  static const String userAgentPackageName = 'rastertiles/voyager_nolabels';
 
-  static TileLayer get tileLayer =>
-      TileLayer(
-        urlTemplate: tileLayerUrl,
-        userAgentPackageName: userAgentPackageName,
-        tileProvider: CancellableNetworkTileProvider(),
-      );
+  static TileLayer get tileLayer => TileLayer(
+    urlTemplate: tileLayerUrl,
+    subdomains: ['a', 'b', 'c'],
+    additionalOptions: {
+      'style': userAgentPackageName, // Use 'rastertiles/dark_all' for dark mode
+    },
+    tileProvider: CancellableNetworkTileProvider(),
+  );
 }
