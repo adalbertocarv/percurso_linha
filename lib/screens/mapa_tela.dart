@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../config/map_config.dart';
 import '../models/percurso_model.dart';
-import '../services/percurso_service.dart';
+import '../utils/pesquisar_percurso.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -12,9 +12,11 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   final TextEditingController _controller = TextEditingController();
-  final PercursoService _percursoService = PercursoService();
   PercursoModel? _percurso;
   List<LatLng> _polylinePoints = [];
+
+  // Instância de PercursoPesquisa para chamar a função pesquisarPercurso
+  final PercursoPesquisa _percursoPesquisa = PercursoPesquisa();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,8 @@ class _MapPageState extends State<MapPage> {
                 labelText: 'Digite o número da linha',
                 suffixIcon: IconButton(
                   icon: Icon(Icons.search),
-                  onPressed: _pesquisarPercurso,
+                  onPressed:
+                      _onPesquisarPressed, // Usa a nova função _onPesquisarPressed
                 ),
               ),
             ),
@@ -41,45 +44,43 @@ class _MapPageState extends State<MapPage> {
             child: _percurso == null
                 ? Center(child: Text('Pesquise uma linha de ônibus.'))
                 : FlutterMap(
-              options: MapOptions(
-                center: _polylinePoints.isNotEmpty ? _polylinePoints[0] : LatLng(0, 0),
-                zoom: 13.0,
-              ),
-              children: [
-                MapConfig.tileLayer,
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: _polylinePoints,
-                      strokeWidth: 4.0,
-                      color: Colors.blue,
+                    options: MapOptions(
+                      center: _polylinePoints.isNotEmpty
+                          ? _polylinePoints[0]
+                          : LatLng(0, 0),
+                      zoom: 13.0,
                     ),
-                  ],
-                ),
-              ],
-            ),
+                    children: [
+                      MapConfig.tileLayer,
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _polylinePoints,
+                            strokeWidth: 4.0,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _pesquisarPercurso() async {
-    final linha = _controller.text;
-    if (linha.isEmpty) return;
-
-    try {
-      final percurso = await _percursoService.buscarPercurso(linha);
-      setState(() {
-        _percurso = percurso;
-        _polylinePoints = percurso.coordinates
-            .map((coord) => LatLng(coord[1], coord[0]))
-            .toList();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao buscar o percurso: $e')),
-      );
-    }
+  // Função que será chamada ao pressionar o botão de pesquisa
+  void _onPesquisarPressed() {
+    _percursoPesquisa.pesquisarPercurso(
+      linha: _controller.text,
+      controller: _controller,
+      context: context,
+      onPercursoEncontrado: (percurso, polylinePoints) {
+        setState(() {
+          _percurso = percurso;
+          _polylinePoints = polylinePoints;
+        });
+      },
+    );
   }
 }
